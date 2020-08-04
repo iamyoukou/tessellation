@@ -77,8 +77,8 @@ public:
 string readFile(const string);
 void printLog(GLuint &);
 GLint myGetUniformLocation(GLuint &, string);
-GLuint buildShader(string, string);
+GLuint buildShader(string, string, string, string);
 GLuint compileShader(string, GLenum);
-GLuint linkShader(GLuint, GLuint);
+GLuint linkShader(GLuint, GLuint, GLuint, GLuint);
 void drawBox(vec3, vec3);
 void drawPoints(vector<Point> &);

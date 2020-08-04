@@ -15,7 +15,6 @@ all: main
 
 main: main.o common.o
 	$(CXX) $(LINK) $^ -o main
-	rm -f *.o
 
 main.o: $(SRC_DIR)/main.cpp
 	$(CXX) $(COMPILE) $^ -o main.o

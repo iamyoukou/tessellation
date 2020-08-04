@@ -12,8 +12,9 @@ std::string readFile(const std::string fileName) {
 }
 
 // return a shader executable
-GLuint buildShader(string vsDir, string fsDir) {
-  GLuint vs, fs;
+GLuint buildShader(string vsDir, string fsDir, string tcsDir = "",
+                   string tesDir = "") {
+  GLuint vs, fs, tcs = 0, tes = 0;
   GLint linkOk;
   GLuint exeShader;
 
@@ -21,8 +22,14 @@ GLuint buildShader(string vsDir, string fsDir) {
   vs = compileShader(vsDir, GL_VERTEX_SHADER);
   fs = compileShader(fsDir, GL_FRAGMENT_SHADER);
 
+  // TCS, TES
+  if (tcsDir != "" && tesDir != "") {
+    tcs = compileShader(tcsDir, GL_TESS_CONTROL_SHADER);
+    tes = compileShader(tesDir, GL_TESS_EVALUATION_SHADER);
+  }
+
   // link
-  exeShader = linkShader(vs, fs);
+  exeShader = linkShader(vs, fs, tcs, tes);
 
   return exeShader;
 }
@@ -65,13 +72,19 @@ GLuint compileShader(string fileName, GLenum type) {
   return objShader;
 }
 
-GLuint linkShader(GLuint vsObj, GLuint fsObj) {
+GLuint linkShader(GLuint vsObj, GLuint fsObj, GLuint tcsObj, GLuint tesObj) {
   GLuint exe;
   GLint linkOk;
 
   exe = glCreateProgram();
   glAttachShader(exe, vsObj);
   glAttachShader(exe, fsObj);
+
+  if (tcsObj != 0 && tesObj != 0) {
+    glAttachShader(exe, tcsObj);
+    glAttachShader(exe, tesObj);
+  }
+
   glLinkProgram(exe);
 
   // check result
@@ -296,7 +309,8 @@ Mesh::~Mesh() {
 }
 
 void Mesh::initShader() {
-  shader = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl");
+  shader = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl",
+                       "./shader/tcsPhong.glsl", "./shader/tesPhong.glsl");
 }
 
 void Mesh::initUniform() {
@@ -526,7 +540,8 @@ void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColor,
   glUniform1i(uniTexNormal, unitNormal);  // change normal
 
   glBindVertexArray(vao);
-  glDrawArrays(GL_TRIANGLES, 0, faces.size() * 3);
+
+  glDrawArrays(GL_PATCHES, 0, faces.size() * 3);
 }
 
 void Mesh::translate(glm::vec3 xyz) {

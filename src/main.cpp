@@ -238,12 +238,17 @@ void initGL() { // Initialise GLFW
 
   glEnable(GL_PROGRAM_POINT_SIZE);
   glPointSize(20);
+
+  glPatchParameteri(GL_PATCH_VERTICES, 3);
+
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void initOthers() {
   FreeImage_Initialise(true);
 
-  pointShader = buildShader("./shader/vsPoint.glsl", "./shader/fsPoint.glsl");
+  pointShader =
+      buildShader("./shader/vsPoint.glsl", "./shader/fsPoint.glsl", "", "");
   glUseProgram(pointShader);
   uniPointM = myGetUniformLocation(pointShader, "M");
   uniPointV = myGetUniformLocation(pointShader, "V");
