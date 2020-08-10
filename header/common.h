@@ -74,6 +74,34 @@ public:
   void findAABB();
 };
 
+class Quad {
+public:
+  vector<vec3> vtxs;
+  vector<vec2> uvs;
+  vector<vec3> nms;
+
+  // opengl data
+  GLuint vboVtxs, vboUvs, vboNormals;
+  GLuint vao;
+  GLuint shader;
+  GLuint tboBase, tboNormal, tboHeight;
+  GLint uniModel, uniView, uniProjection;
+  GLint uniEyePoint, uniLightColor, uniLightPosition;
+  GLint uniTexBase, uniTexNormal, uniTexHeight;
+
+  mat4 model, view, projection;
+
+  Quad();
+  ~Quad();
+
+  void initData();
+  void initBuffers();
+  void initShader();
+  void initUniform();
+  void draw(mat4, mat4, mat4, vec3, vec3, vec3, int, int, int);
+  void setTexture(GLuint &, int, const string, FREE_IMAGE_FORMAT);
+};
+
 string readFile(const string);
 void printLog(GLuint &);
 GLint myGetUniformLocation(GLuint &, string);

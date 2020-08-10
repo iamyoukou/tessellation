@@ -309,9 +309,8 @@ Mesh::~Mesh() {
 }
 
 void Mesh::initShader() {
-  shader =
-      buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl",
-                  "./shader/tcsTriangle.glsl", "./shader/tesTriangle.glsl");
+  shader = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl",
+                       "./shader/tcsQuad.glsl", "./shader/tesQuad.glsl");
 }
 
 void Mesh::initUniform() {
@@ -545,7 +544,7 @@ void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColor,
 
   glBindVertexArray(vao);
 
-  glDrawArrays(GL_PATCHES, 0, faces.size() * 3);
+  glDrawArrays(GL_PATCHES, 0, 4);
 }
 
 void Mesh::translate(glm::vec3 xyz) {
@@ -613,6 +612,131 @@ void Mesh::findAABB() {
 
   min = min;
   max = max;
+}
+
+Quad::Quad() {
+  initData();
+  initBuffers();
+  initShader();
+  initUniform();
+}
+
+Quad::~Quad() {}
+
+void Quad::initData() {
+  // vertices
+  vtxs.push_back(vec3(-1.0f, 1.0f, 0.0f));
+  vtxs.push_back(vec3(-1.0f, -1.0f, 0.0f));
+  vtxs.push_back(vec3(1.0f, -1.0f, 0.0f));
+  vtxs.push_back(vec3(1.0f, 1.0f, 0.0f));
+
+  // uvs
+  uvs.push_back(vec2(0.0f, 1.0f));
+  uvs.push_back(vec2(0.0f, 0.0f));
+  uvs.push_back(vec2(1.0f, 0.0f));
+  uvs.push_back(vec2(1.0f, 1.0f));
+
+  // normals
+  nms.push_back(vec3(0.0f, 0.0f, 1.0f));
+  nms.push_back(vec3(0.0f, 0.0f, 1.0f));
+  nms.push_back(vec3(0.0f, 0.0f, 1.0f));
+  nms.push_back(vec3(0.0f, 0.0f, 1.0f));
+}
+
+void Quad::initShader() {
+  shader = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl",
+                       "./shader/tcsQuad.glsl", "./shader/tesQuad.glsl");
+}
+
+void Quad::initUniform() {
+  uniModel = myGetUniformLocation(shader, "M");
+  uniView = myGetUniformLocation(shader, "V");
+  uniProjection = myGetUniformLocation(shader, "P");
+  uniEyePoint = myGetUniformLocation(shader, "eyePoint");
+  uniLightColor = myGetUniformLocation(shader, "lightColor");
+  uniLightPosition = myGetUniformLocation(shader, "lightPosition");
+  uniTexBase = myGetUniformLocation(shader, "texBase");
+  uniTexNormal = myGetUniformLocation(shader, "texNormal");
+  uniTexHeight = myGetUniformLocation(shader, "texHeight");
+}
+
+void Quad::initBuffers() {
+  GLfloat aVtxCoords[12] = {vtxs[0].x, vtxs[0].y, vtxs[0].z, vtxs[1].x,
+                            vtxs[1].y, vtxs[1].z, vtxs[2].x, vtxs[2].y,
+                            vtxs[2].z, vtxs[3].x, vtxs[3].y, vtxs[3].z};
+
+  GLfloat aUvs[8] = {uvs[0].x, uvs[0].y, uvs[1].x, uvs[1].y,
+                     uvs[2].x, uvs[2].y, uvs[3].x, uvs[3].y};
+
+  GLfloat aNormals[12] = {nms[0].x, nms[0].y, nms[0].z, nms[1].x,
+                          nms[1].y, nms[1].z, nms[2].x, nms[2].y,
+                          nms[2].z, nms[3].x, nms[3].y, nms[3].z};
+
+  // vao
+  glGenVertexArrays(1, &vao);
+  glBindVertexArray(vao);
+
+  // vbo for vertex
+  glGenBuffers(1, &vboVtxs);
+  glBindBuffer(GL_ARRAY_BUFFER, vboVtxs);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 18, aVtxCoords,
+               GL_STATIC_DRAW);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(0);
+
+  // vbo for texture
+  glGenBuffers(1, &vboUvs);
+  glBindBuffer(GL_ARRAY_BUFFER, vboUvs);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 12, aUvs, GL_STATIC_DRAW);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(1);
+
+  // vbo for normal
+  glGenBuffers(1, &vboNormals);
+  glBindBuffer(GL_ARRAY_BUFFER, vboNormals);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 18, aNormals, GL_STATIC_DRAW);
+  glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, 0);
+  glEnableVertexAttribArray(2);
+}
+
+void Quad::setTexture(GLuint &tbo, int texUnit, const string texDir,
+                      FREE_IMAGE_FORMAT imgType) {
+  glActiveTexture(GL_TEXTURE0 + texUnit);
+
+  FIBITMAP *texImage =
+      FreeImage_ConvertTo24Bits(FreeImage_Load(imgType, texDir.c_str()));
+
+  glGenTextures(1, &tbo);
+  glBindTexture(GL_TEXTURE_2D, tbo);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, FreeImage_GetWidth(texImage),
+               FreeImage_GetHeight(texImage), 0, GL_BGR, GL_UNSIGNED_BYTE,
+               (void *)FreeImage_GetBits(texImage));
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+  // release
+  FreeImage_Unload(texImage);
+}
+
+void Quad::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColor,
+                vec3 lightPosition, int unitBaseColor, int unitNormal,
+                int unitHeight) {
+  glUseProgram(shader);
+
+  glUniformMatrix4fv(uniModel, 1, GL_FALSE, value_ptr(M));
+  glUniformMatrix4fv(uniView, 1, GL_FALSE, value_ptr(V));
+  glUniformMatrix4fv(uniProjection, 1, GL_FALSE, value_ptr(P));
+
+  glUniform3fv(uniEyePoint, 1, value_ptr(eye));
+
+  glUniform3fv(uniLightColor, 1, value_ptr(lightColor));
+  glUniform3fv(uniLightPosition, 1, value_ptr(lightPosition));
+
+  glUniform1i(uniTexBase, unitBaseColor); // change base color
+  glUniform1i(uniTexNormal, unitNormal);  // change normal
+  glUniform1i(uniTexHeight, unitHeight);  // change height map
+
+  glBindVertexArray(vao);
+  glDrawArrays(GL_PATCHES, 0, 4);
 }
 
 void drawPoints(vector<Point> &pts) { // array data

@@ -2,7 +2,8 @@
 
 GLFWwindow *window;
 
-Mesh *mesh;
+// Mesh *mesh;
+Quad *mesh;
 
 vec3 lightPosition = vec3(1.25f, 1.f, 1.f);
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
@@ -41,7 +42,8 @@ int main(int argc, char **argv) {
   initOthers();
 
   // prepare mesh data
-  mesh = new Mesh("./mesh/quad.obj");
+  // mesh = new Mesh("./mesh/quad.obj");
+  mesh = new Quad();
 
   initTexture();
   initMatrix();
@@ -67,7 +69,7 @@ int main(int argc, char **argv) {
     computeMatricesFromInputs();
 
     mat4 tempModel = translate(mat4(1.f), vec3(2.5f, 0.f, 0.f));
-    // tempModel = rotate(tempModel, 3.14f / 2.0f, vec3(1, 0, 0));
+    tempModel = rotate(tempModel, -3.14f / 2.0f, vec3(1, 0, 0));
     // tempModel = scale(tempModel, vec3(0.5, 0.5, 0.5));
     mesh->draw(tempModel, view, projection, eyePoint, lightColor, lightPosition,
                13, 14, 15);
@@ -240,10 +242,9 @@ void initGL() { // Initialise GLFW
   glPointSize(20);
 
   // to enable tessellation
-  // 3: each patch is a triangle
-  glPatchParameteri(GL_PATCH_VERTICES, 3);
+  glPatchParameteri(GL_PATCH_VERTICES, 4);
 
-  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void initOthers() {
