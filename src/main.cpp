@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
     // tempModel = rotate(tempModel, 3.14f / 2.0f, vec3(1, 0, 0));
     // tempModel = scale(tempModel, vec3(0.5, 0.5, 0.5));
     mesh->draw(tempModel, view, projection, eyePoint, lightColor, lightPosition,
-               13, 14);
+               13, 14, 15);
 
     // It is better to always use transform matrix
     // to move, rotate and scale objects.
@@ -239,9 +239,11 @@ void initGL() { // Initialise GLFW
   glEnable(GL_PROGRAM_POINT_SIZE);
   glPointSize(20);
 
+  // to enable tessellation
+  // 3: each patch is a triangle
   glPatchParameteri(GL_PATCH_VERTICES, 3);
 
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+  // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 }
 
 void initOthers() {
@@ -265,6 +267,7 @@ void initMatrix() {
 void initTexture() {
   mesh->setTexture(mesh->tboBase, 13, "./res/stone_basecolor.jpg", FIF_JPEG);
   mesh->setTexture(mesh->tboNormal, 14, "./res/stone_normal.jpg", FIF_JPEG);
+  mesh->setTexture(mesh->tboHeight, 15, "./res/stone_height.jpg", FIF_JPEG);
 }
 
 void releaseResource() {

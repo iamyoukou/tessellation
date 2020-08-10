@@ -309,8 +309,9 @@ Mesh::~Mesh() {
 }
 
 void Mesh::initShader() {
-  shader = buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl",
-                       "./shader/tcsPhong.glsl", "./shader/tesPhong.glsl");
+  shader =
+      buildShader("./shader/vsPhong.glsl", "./shader/fsPhong.glsl",
+                  "./shader/tcsTriangle.glsl", "./shader/tesTriangle.glsl");
 }
 
 void Mesh::initUniform() {
@@ -322,6 +323,7 @@ void Mesh::initUniform() {
   uniLightPosition = myGetUniformLocation(shader, "lightPosition");
   uniTexBase = myGetUniformLocation(shader, "texBase");
   uniTexNormal = myGetUniformLocation(shader, "texNormal");
+  uniTexHeight = myGetUniformLocation(shader, "texHeight");
 }
 
 void Mesh::loadObj(const string fileName) {
@@ -524,7 +526,8 @@ void Mesh::setTexture(GLuint &tbo, int texUnit, const string texDir,
 }
 
 void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColor,
-                vec3 lightPosition, int unitBaseColor, int unitNormal) {
+                vec3 lightPosition, int unitBaseColor, int unitNormal,
+                int unitHeight) {
   glUseProgram(shader);
 
   glUniformMatrix4fv(uniModel, 1, GL_FALSE, value_ptr(M));
@@ -538,6 +541,7 @@ void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColor,
 
   glUniform1i(uniTexBase, unitBaseColor); // change base color
   glUniform1i(uniTexNormal, unitNormal);  // change normal
+  glUniform1i(uniTexHeight, unitHeight);  // change height map
 
   glBindVertexArray(vao);
 

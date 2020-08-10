@@ -34,16 +34,19 @@ void main() {
   esInWorldPos[gl_InvocationID] = worldPos[gl_InvocationID];
 
   // Calculate the distance from the camera to the three control points
-  float EyeToVertexDistance0 = distance(eyePoint, esInWorldPos[0]);
-  float EyeToVertexDistance1 = distance(eyePoint, esInWorldPos[1]);
-  float EyeToVertexDistance2 = distance(eyePoint, esInWorldPos[2]);
+  // to not do same stuff 3 times
+  if (gl_InvocationID == 0) {
+    float EyeToVertexDistance0 = distance(eyePoint, esInWorldPos[0]);
+    float EyeToVertexDistance1 = distance(eyePoint, esInWorldPos[1]);
+    float EyeToVertexDistance2 = distance(eyePoint, esInWorldPos[2]);
 
-  // Calculate the tessellation levels
-  gl_TessLevelOuter[0] =
-      GetTessLevel(EyeToVertexDistance1, EyeToVertexDistance2);
-  gl_TessLevelOuter[1] =
-      GetTessLevel(EyeToVertexDistance2, EyeToVertexDistance0);
-  gl_TessLevelOuter[2] =
-      GetTessLevel(EyeToVertexDistance0, EyeToVertexDistance1);
-  gl_TessLevelInner[0] = gl_TessLevelOuter[2];
+    // Calculate the tessellation levels
+    gl_TessLevelOuter[0] =
+        GetTessLevel(EyeToVertexDistance1, EyeToVertexDistance2);
+    gl_TessLevelOuter[1] =
+        GetTessLevel(EyeToVertexDistance2, EyeToVertexDistance0);
+    gl_TessLevelOuter[2] =
+        GetTessLevel(EyeToVertexDistance0, EyeToVertexDistance1);
+    gl_TessLevelInner[0] = gl_TessLevelOuter[2];
+  }
 }

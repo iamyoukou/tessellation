@@ -46,10 +46,10 @@ public:
   GLuint vboVtxs, vboUvs, vboNormals;
   GLuint vao;
   GLuint shader;
-  GLuint tboBase, tboNormal;
+  GLuint tboBase, tboNormal, tboHeight;
   GLint uniModel, uniView, uniProjection;
   GLint uniEyePoint, uniLightColor, uniLightPosition;
-  GLint uniTexBase, uniTexNormal;
+  GLint uniTexBase, uniTexNormal, uniTexHeight;
 
   // aabb
   vec3 min, max;
@@ -65,7 +65,7 @@ public:
   void initBuffers();
   void initShader();
   void initUniform();
-  void draw(mat4, mat4, mat4, vec3, vec3, vec3, int, int);
+  void draw(mat4, mat4, mat4, vec3, vec3, vec3, int, int, int);
   void setTexture(GLuint &, int, const string, FREE_IMAGE_FORMAT);
 
   void translate(vec3);

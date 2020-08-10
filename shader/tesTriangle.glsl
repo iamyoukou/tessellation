@@ -3,8 +3,7 @@
 layout(triangles, equal_spacing, ccw) in;
 
 uniform mat4 V, P;
-// uniform sampler2D gDisplacementMap;
-// uniform float gDispFactor;
+uniform sampler2D texHeight;
 
 in vec3 esInWorldPos[];
 in vec2 esInUv[];
@@ -33,8 +32,9 @@ void main() {
   worldPos = interpolate3D(esInWorldPos[0], esInWorldPos[1], esInWorldPos[2]);
 
   // Displace the vertex along the normal
-  // float Displacement = texture(gDisplacementMap, uv.xy).x;
-  // worldPos += worldN * Displacement * gDispFactor;
+  // float scale = 0.1;
+  // float offset = texture(texHeight, uv).r * 2.0 - 1.0;
+  // worldPos.y += offset * scale;
 
   gl_Position = P * V * vec4(worldPos, 1.0);
 }

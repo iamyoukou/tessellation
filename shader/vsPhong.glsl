@@ -11,7 +11,7 @@ uniform mat4 M, V, P;
 
 void main() {
   // projection plane
-  gl_Position = P * V * M * vec4(vtxCoord, 1.0);
+  // gl_Position = P * V * M * vec4(vtxCoord, 1.0);
 
   uv = texUv;
 
