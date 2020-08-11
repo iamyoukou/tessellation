@@ -59,9 +59,9 @@ void main() {
   float dc = max(dot(N, L), 0.0);
   float sc = pow(max(dot(H, N), 0.0), alpha);
 
-  outputColor += ambient;
-  outputColor += diffuse * dc * attenuation;
-  outputColor += specular * sc * attenuation;
+  // outputColor += ambient;
+  // outputColor += diffuse * dc * attenuation;
+  // outputColor += specular * sc * attenuation;
 
-  outputColor = vec4(1.0);
+  outputColor = vec4(max(dot(worldN, L), 0.0));
 }

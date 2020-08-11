@@ -5,19 +5,19 @@ GLFWwindow *window;
 // Mesh *mesh;
 Quad *mesh;
 
-vec3 lightPosition = vec3(1.25f, 1.f, 1.f);
+vec3 lightPosition = vec3(0, 1.f, 0);
 vec3 lightColor = vec3(1.f, 1.f, 1.f);
 
 /* for view control */
-float verticalAngle = -2.62668;
-float horizontalAngle = 0.0393615;
+float verticalAngle = -2.07063;
+float horizontalAngle = 2.12426;
 float initialFoV = 45.0f;
 float speed = 5.0f;
 float mouseSpeed = 0.005f;
 float nearPlane = 0.01f, farPlane = 1000.f;
 
 mat4 model, view, projection;
-vec3 eyePoint = vec3(4.060136, 2.732756, -0.032995);
+vec3 eyePoint = vec3(-0.558788, 2.681102, 1.797832);
 vec3 eyeDirection =
     vec3(sin(verticalAngle) * cos(horizontalAngle), cos(verticalAngle),
          sin(verticalAngle) * sin(horizontalAngle));
@@ -68,24 +68,31 @@ int main(int argc, char **argv) {
     // view control
     computeMatricesFromInputs();
 
-    mat4 tempModel = translate(mat4(1.f), vec3(2.5f, 0.f, 0.f));
-    tempModel = rotate(tempModel, -3.14f / 2.0f, vec3(1, 0, 0));
+    // mat4 tempModel = translate(mat4(1.f), vec3(2.5f, 0.f, 0.f));
+    // tempModel = rotate(tempModel, -3.14f / 2.0f, vec3(1, 0, 0));
     // tempModel = scale(tempModel, vec3(0.5, 0.5, 0.5));
-    mesh->draw(tempModel, view, projection, eyePoint, lightColor, lightPosition,
-               13, 14, 15);
+    // mesh->draw(tempModel, view, projection, eyePoint, lightColor,
+    // lightPosition,
+    //            13, 14, 15);
 
     // It is better to always use transform matrix
     // to move, rotate and scale objects.
     // This can avoid updating vertex buffers.
-    // for (int r = 0; r < 1; r++) {
-    //   for (int c = 0; c < 1; c++) {
-    //     tempModel = translate(mat4(1.f), vec3(-4.f * r, 0.f, 4.f * c));
-    //     tempModel = rotate(tempModel, -3.14f / 2.0f, vec3(1, 0, 0));
-    //
-    //     mesh->draw(tempModel, view, projection, eyePoint, lightColor,
-    //                lightPosition, 10, 11);
-    //   }
-    // }
+    for (int r = 0; r < 4; r++) {
+      for (int c = 0; c < 4; c++) {
+        // NOTE: the direction of z-axis and the direction v-axis are opposite
+        // so either use (-2.0f * r) here, or substract the offset in VS
+        mat4 tempModel = translate(mat4(1.f), vec3(2.0f * c, 0.f, -2.0f * r));
+        tempModel = rotate(tempModel, -3.14f / 2.0f, vec3(1, 0, 0));
+
+        glUseProgram(mesh->shader);
+        glUniform2fv(mesh->uniNumQuads, 1, value_ptr(vec2(4, 4)));
+        glUniform2fv(mesh->uniQuadIdx, 1, value_ptr(vec2(c, r)));
+
+        mesh->draw(tempModel, view, projection, eyePoint, lightColor,
+                   lightPosition, 13, 14, 15);
+      }
+    }
 
     glUseProgram(pointShader);
     glUniformMatrix4fv(uniPointM, 1, GL_FALSE, value_ptr(model));
@@ -268,7 +275,7 @@ void initMatrix() {
 void initTexture() {
   mesh->setTexture(mesh->tboBase, 13, "./res/stone_basecolor.jpg", FIF_JPEG);
   mesh->setTexture(mesh->tboNormal, 14, "./res/stone_normal.jpg", FIF_JPEG);
-  mesh->setTexture(mesh->tboHeight, 15, "./res/stone_height.jpg", FIF_JPEG);
+  mesh->setTexture(mesh->tboHeight, 15, "./res/height.png", FIF_PNG);
 }
 
 void releaseResource() {

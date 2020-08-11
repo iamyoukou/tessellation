@@ -658,6 +658,8 @@ void Quad::initUniform() {
   uniTexBase = myGetUniformLocation(shader, "texBase");
   uniTexNormal = myGetUniformLocation(shader, "texNormal");
   uniTexHeight = myGetUniformLocation(shader, "texHeight");
+  uniNumQuads = myGetUniformLocation(shader, "numQuads");
+  uniQuadIdx = myGetUniformLocation(shader, "quadIdx");
 }
 
 void Quad::initBuffers() {

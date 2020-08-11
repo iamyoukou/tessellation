@@ -14,11 +14,17 @@ out vec3 esInN[];
 
 float getTessLevel(float d) {
   if (d <= 2.0) {
-    return 8.0;
+    return 32.0;
   } else if (d <= 5.0) {
+    return 16.0;
+  } else if (d <= 10.0) {
+    return 8.0;
+  } else if (d <= 15.0) {
     return 4.0;
-  } else {
+  } else if (d <= 20.0) {
     return 2.0;
+  } else {
+    return 1.0;
   }
 }
 

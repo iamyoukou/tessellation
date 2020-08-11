@@ -1,10 +1,10 @@
 #version 400
 
-layout(quads) in;
+layout(quads, equal_spacing, ccw) in;
 
 uniform mat4 M, V, P;
 
-// uniform sampler2D texHeight;
+uniform sampler2D texHeight;
 
 in vec3 esInWorldPos[];
 in vec2 esInUv[];
@@ -39,6 +39,10 @@ void main() {
                          esInWorldPos[3]);
   uv = interpolate(esInUv[0], esInUv[1], esInUv[2], esInUv[3]);
   worldN = interpolate(esInN[0], esInN[1], esInN[2], esInN[3]);
+
+  float scale = 6;
+  float offset = texture(texHeight, uv).r * 2.0 - 1.0;
+  worldPos.y += offset * scale;
 
   gl_Position = P * V * vec4(worldPos, 1.0);
 }

@@ -88,6 +88,7 @@ public:
   GLint uniModel, uniView, uniProjection;
   GLint uniEyePoint, uniLightColor, uniLightPosition;
   GLint uniTexBase, uniTexNormal, uniTexHeight;
+  GLint uniNumQuads, uniQuadIdx;
 
   mat4 model, view, projection;
 
