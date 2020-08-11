@@ -12,16 +12,18 @@ out vec3 esInWorldPos[];
 out vec2 esInUv[];
 out vec3 esInN[];
 
-float getTessLevel(float d) {
-  if (d <= 2.0) {
+float getTessLevel(float dist0, float dist1) {
+  float avgDist = (dist0 + dist1) / 2.0;
+
+  if (avgDist <= 2.0) {
     return 32.0;
-  } else if (d <= 5.0) {
+  } else if (avgDist <= 4.0) {
     return 16.0;
-  } else if (d <= 10.0) {
+  } else if (avgDist <= 8.0) {
     return 8.0;
-  } else if (d <= 15.0) {
+  } else if (avgDist <= 16.0) {
     return 4.0;
-  } else if (d <= 20.0) {
+  } else if (avgDist <= 32.0) {
     return 2.0;
   } else {
     return 1.0;
@@ -34,17 +36,17 @@ void main() {
   esInWorldPos[gl_InvocationID] = worldPos[gl_InvocationID];
 
   if (gl_InvocationID == 0) {
-    vec3 midPoint =
-        (worldPos[0] + worldPos[1] + worldPos[2] + worldPos[3]) * 0.25;
-    float dist = distance(eyePoint, midPoint);
-    float level = getTessLevel(dist);
+    float eyeToVtxDist0 = distance(eyePoint, esInWorldPos[0]);
+    float eyeToVtxDist1 = distance(eyePoint, esInWorldPos[1]);
+    float eyeToVtxDist2 = distance(eyePoint, esInWorldPos[2]);
+    float eyeToVtxDist3 = distance(eyePoint, esInWorldPos[3]);
 
-    gl_TessLevelOuter[0] = level;
-    gl_TessLevelOuter[1] = level;
-    gl_TessLevelOuter[2] = level;
-    gl_TessLevelOuter[3] = level;
+    gl_TessLevelOuter[0] = getTessLevel(eyeToVtxDist3, eyeToVtxDist0);
+    gl_TessLevelOuter[1] = getTessLevel(eyeToVtxDist0, eyeToVtxDist1);
+    gl_TessLevelOuter[2] = getTessLevel(eyeToVtxDist1, eyeToVtxDist2);
+    gl_TessLevelOuter[3] = getTessLevel(eyeToVtxDist2, eyeToVtxDist3);
 
-    gl_TessLevelInner[0] = level;
-    gl_TessLevelInner[1] = level;
+    gl_TessLevelInner[0] = gl_TessLevelOuter[3];
+    gl_TessLevelInner[1] = gl_TessLevelOuter[2];
   }
 }

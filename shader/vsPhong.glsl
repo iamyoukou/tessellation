@@ -9,12 +9,13 @@ out vec3 worldPos;
 out vec3 worldN;
 
 uniform mat4 M;
-uniform vec2 numQuads, quadIdx;
+// uniform vec2 numQuads, quadIdx;
 
 void main() {
-  float quadSize = 1.0 / numQuads.x;
-
-  uv = texUv * quadSize + quadIdx * quadSize;
+  // float quadSize = 1.0 / numQuads.x;
+  //
+  // uv = texUv * quadSize + quadIdx * quadSize;
+  uv = texUv;
 
   worldPos = (M * vec4(vtxCoord, 1.0)).xyz;
 

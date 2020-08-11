@@ -19,6 +19,9 @@ using namespace glm;
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
+#define TRIANGLE 0
+#define QUAD 1
+
 /* Define a 3D point */
 typedef struct {
   vec3 pos;
@@ -29,9 +32,9 @@ typedef struct {
 
 typedef struct {
   // data index
-  GLuint v1, v2, v3;
-  GLuint vt1, vt2, vt3;
-  GLuint vn1, vn2, vn3;
+  GLuint v1, v2, v3, v4;
+  GLuint vt1, vt2, vt3, vt4;
+  GLuint vn1, vn2, vn3, vn4;
 } Face;
 
 class Mesh {
@@ -55,14 +58,17 @@ public:
   vec3 min, max;
 
   mat4 model, view, projection;
+  int faceType;
 
   /* Constructors */
-  Mesh(const string);
+  Mesh(const string, int);
   ~Mesh();
 
   /* Member functions */
   void loadObj(const string);
+  void loadObjQuad(const string);
   void initBuffers();
+  void initBuffersQuad();
   void initShader();
   void initUniform();
   void draw(mat4, mat4, mat4, vec3, vec3, vec3, int, int, int);
