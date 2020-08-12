@@ -46,7 +46,11 @@ void main() {
     gl_TessLevelOuter[2] = getTessLevel(eyeToVtxDist1, eyeToVtxDist2);
     gl_TessLevelOuter[3] = getTessLevel(eyeToVtxDist2, eyeToVtxDist3);
 
-    gl_TessLevelInner[0] = gl_TessLevelOuter[3];
-    gl_TessLevelInner[1] = gl_TessLevelOuter[2];
+    float avg = (gl_TessLevelOuter[0] + gl_TessLevelOuter[1] +
+                 gl_TessLevelOuter[2] + gl_TessLevelOuter[3]) *
+                0.25;
+
+    gl_TessLevelInner[0] = avg;
+    gl_TessLevelInner[1] = avg;
   }
 }

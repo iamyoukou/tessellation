@@ -64,5 +64,5 @@ void main() {
   // outputColor += specular * sc * attenuation;
 
   outputColor = vec4(max(dot(worldN, L), 0.0));
-  // outputColor = vec4(1.0);
+  outputColor = vec4(1.0);
 }

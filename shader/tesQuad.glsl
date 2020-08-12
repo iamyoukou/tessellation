@@ -40,7 +40,7 @@ void main() {
   uv = interpolate(esInUv[0], esInUv[1], esInUv[2], esInUv[3]);
   worldN = interpolate(esInN[0], esInN[1], esInN[2], esInN[3]);
 
-  float scale = 6;
+  float scale = 10;
   float offset = texture(texHeight, uv).r * 2.0 - 1.0;
   worldPos.y += offset * scale;
 

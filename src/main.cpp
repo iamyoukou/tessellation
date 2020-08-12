@@ -2,6 +2,9 @@
 
 GLFWwindow *window;
 
+bool saveTrigger = false;
+int frameNumber = 0;
+
 Mesh *mesh;
 // Quad *mesh;
 
@@ -105,6 +108,25 @@ int main(int argc, char **argv) {
 
     /* Poll for and process events */
     glfwPollEvents();
+
+    if (saveTrigger) {
+      string dir = "./result/output";
+      // zero padding
+      // e.g. "output0001.bmp"
+      string num = to_string(frameNumber);
+      num = string(4 - num.length(), '0') + num;
+      string output = dir + num + ".bmp";
+
+      // must use WINDOW_WIDTH * 2 and WINDOW_HEIGHT * 2 on OSX, don't know why
+      FIBITMAP *outputImage =
+          FreeImage_AllocateT(FIT_UINT32, WINDOW_WIDTH * 2, WINDOW_HEIGHT * 2);
+      glReadPixels(0, 0, WINDOW_WIDTH * 2, WINDOW_HEIGHT * 2, GL_BGRA,
+                   GL_UNSIGNED_INT_8_8_8_8_REV,
+                   (GLvoid *)FreeImage_GetBits(outputImage));
+      FreeImage_Save(FIF_BMP, outputImage, output.c_str(), 0);
+      std::cout << output << " saved." << '\n';
+      frameNumber++;
+    }
   }
 
   releaseResource();
@@ -192,6 +214,11 @@ void keyCallback(GLFWwindow *keyWnd, int key, int scancode, int action,
       std::cout << "eyePoint: " << to_string(eyePoint) << '\n';
       std::cout << "verticleAngle: " << fmod(verticalAngle, 6.28f) << ", "
                 << "horizontalAngle: " << fmod(horizontalAngle, 6.28f) << endl;
+      break;
+    }
+    case GLFW_KEY_Y: {
+      saveTrigger = !saveTrigger;
+      frameNumber = 0;
       break;
     }
     default:
