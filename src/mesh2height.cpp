@@ -1,8 +1,7 @@
 // Generate a height map from a terrain mesh.
 // It simply takes the xz-plane as the image plane,
 // and takes the y-axis as the height.
-// By default,
-// the number of vertices in the xz-axis of the terrain must be equal.
+// By default, the number of vertices in the xz-axis of the terrain must be equal.
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -23,67 +22,87 @@ using namespace cv;
 
 Mat canvas;
 vector<vec3> vertices;
+void loadTerrainObj(const string);
 
-void loadObj(const string);
+// ========================================================
+// Main function
+// ========================================================
+int main(int argc, char const *argv[])
+{
+    // Read mesh data into vertex list
+    loadTerrainObj("./terrain.obj");
 
-int main(int argc, char const *argv[]) {
-  loadObj("./terrain.obj");
+    // Create canvas
+    int width = glm::sqrt(vertices.size());
+    int height = width;
+    canvas = Mat(height, width, CV_32FC3, Scalar(0, 0, 0));
 
-  int width, height;
-  width = glm::sqrt(vertices.size());
-  height = width;
+    // Compute height for each vertex, then create height map
+    for (size_t i = 0; i < vertices.size(); i++)
+    {
+        vec3 &vertex = vertices[i];
 
-  canvas = Mat(height, width, CV_32FC3, Scalar(0, 0, 0));
+        // [-1, 1] to [0, 1]
+        vertex = (vertex + vec3(1.f)) * 0.5f;
 
-  for (size_t i = 0; i < vertices.size(); i++) {
-    vec3 &v = vertices[i];
+        // Compute row and column indices of the canvas
+        int col = int(glm::min(vertex.x * float(width), float(width - 1)));
+        int row = int(glm::min(vertex.z * float(height), float(height - 1)));
 
-    // [-1, 1] to [0, 1]
-    v = (v + vec3(1.f)) * 0.5f;
+        // Get pixel from canvas
+        Vec3f &pixel = canvas.at<Vec3f>(row, col);
 
-    // clamp to [0, 1023]
-    int col = int(glm::min(v.x * float(width), float(width - 1)));
-    int row = int(glm::min(v.z * float(height), float(height - 1)));
+        // Height -> color
+        float height = vertex.y;
+        float scale = 255.f;
+        float color = height * scale;
+        pixel[0] = color;
+        pixel[1] = color;
+        pixel[2] = color;
+    }
 
-    float height = v.y;
+    // Save canvas to image
+    imwrite("test.png", canvas);
 
-    Vec3f &pixel = canvas.at<Vec3f>(row, col);
-
-    float scale = 255.f;
-    float color = height * scale;
-    pixel[0] = color;
-    pixel[1] = color;
-    pixel[2] = color;
-  }
-
-  imwrite("test.png", canvas);
-
-  return 0;
+    return 0;
 }
 
-void loadObj(const string fileName) {
-  ifstream fin;
-  fin.open(fileName.c_str());
-
-  if (!(fin.good())) {
-    std::cout << "failed to open file : " << fileName << std::endl;
-  }
-
-  while (fin.peek() != EOF) { // read obj loop
-    string s;
-    fin >> s;
-
-    // vertex coordinate
-    if ("v" == s) {
-      float x, y, z;
-      fin >> x;
-      fin >> y;
-      fin >> z;
-      vertices.push_back(vec3(x, y, z));
-    } else {
-      continue;
+// ========================================================
+// Load terrain mesh
+// Parameters:
+//   fileName: terrain mesh .obj file
+// Remarks: Only used to read terrain mesh
+// ========================================================
+void loadTerrainObj(const string fileName)
+{
+    // Read terrain file
+    ifstream fin;
+    fin.open(fileName.c_str());
+    if (!(fin.good()))
+    {
+        std::cout << "failed to open file : " << fileName << std::endl;
     }
-  } // end read obj loop
 
-  fin.close();
+    // Get terrain data
+    while (fin.peek() != EOF)
+    {
+        string s;
+        fin >> s;
+
+        // Vertex coordinate
+        if ("vertex" == s)
+        {
+            float x, y, z;
+            fin >> x;
+            fin >> y;
+            fin >> z;
+            vertices.push_back(vec3(x, y, z));
+        }
+        else
+        {
+            continue;
+        }
+    }
+
+    fin.close();
 }

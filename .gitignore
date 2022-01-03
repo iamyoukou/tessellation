@@ -1,5 +1,7 @@
-
+.clang-format
+.DS_Store
 main
+mesh2height
 *.o
 result/
 *.mp4
