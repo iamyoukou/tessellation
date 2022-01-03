@@ -1,5 +1,11 @@
 #include "common.h"
 
+// ================================================
+// Read file into a string
+// Parameters:
+//   fileName: file to read
+// Return: string
+// ================================================
 std::string readFile(const std::string fileName)
 {
     std::ifstream in;
@@ -12,37 +18,54 @@ std::string readFile(const std::string fileName)
     return sOut;
 }
 
-// return a shader executable
+// =====================================================
+// Build shaders
+// Parameters:
+//   1. vsDir: vertex shader file
+//   2. fsDir: fragment shader file
+//   3. tcsDir: tessellation control shader file
+//   4. tesDir: tessellation evaluation shader file
+// Return: shader executable
+// =====================================================
 GLuint buildShader(string vsDir, string fsDir, string tcsDir = "", string tesDir = "")
 {
+    // For a shader object, 0 means NULL
     GLuint vs, fs, tcs = 0, tes = 0;
     GLint linkOk;
     GLuint exeShader;
 
-    // compile
+    // Build vertex and fragment shaders
     vs = compileShader(vsDir, GL_VERTEX_SHADER);
     fs = compileShader(fsDir, GL_FRAGMENT_SHADER);
 
-    // TCS, TES
+    // (Option) TCS, TES
     if (tcsDir != "" && tesDir != "")
     {
         tcs = compileShader(tcsDir, GL_TESS_CONTROL_SHADER);
         tes = compileShader(tesDir, GL_TESS_EVALUATION_SHADER);
     }
 
-    // link
+    // Link shader objects
     exeShader = linkShader(vs, fs, tcs, tes);
 
     return exeShader;
 }
 
+// ================================================
+// Compile shader file
+// Parameters:
+//   1. fileName: shader file
+//   2. type: shader type
+// Return: shader object
+// ================================================
 GLuint compileShader(string fileName, GLenum type)
 {
-    /* read source code */
+    // Read shader file
     string sTemp = readFile(fileName);
-    string info;
     const GLchar *source = sTemp.c_str();
 
+    // Set shader type
+    string info;
     switch (type)
     {
         case GL_VERTEX_SHADER:
@@ -53,17 +76,20 @@ GLuint compileShader(string fileName, GLenum type)
             break;
     }
 
+    // If reading shader file fails
     if (source == NULL)
     {
         std::cout << info << " Shader : Can't read shader source file." << std::endl;
         return 0;
     }
 
+    // Compile shader file
     const GLchar *sources[] = {source};
     GLuint objShader = glCreateShader(type);
     glShaderSource(objShader, 1, sources, NULL);
     glCompileShader(objShader);
 
+    // If compiling shader file fails
     GLint compile_ok;
     glGetShaderiv(objShader, GL_COMPILE_STATUS, &compile_ok);
     if (compile_ok == GL_FALSE)
@@ -77,15 +103,25 @@ GLuint compileShader(string fileName, GLenum type)
     return objShader;
 }
 
+// =======================================================
+// Link shaders
+// Parameters:
+//   1. vsObj: vertex shader object
+//   2. fsObj: fragment shader object
+//   3. tcsObj: tessellation control shader object
+//   4. tesObj: tessellation evaluation shader object
+// Remarks: For a shader object, 0 means NULL
+// Return: shader program object
+// =======================================================
 GLuint linkShader(GLuint vsObj, GLuint fsObj, GLuint tcsObj, GLuint tesObj)
 {
-    GLuint exe;
-    GLint linkOk;
-
-    exe = glCreateProgram();
+    // Attach shader objects to create an executable
+    // Then link the executable to rendering pipeline
+    GLuint exe = glCreateProgram();
     glAttachShader(exe, vsObj);
     glAttachShader(exe, fsObj);
 
+    // (Option) Attach tessellation shaders
     if (tcsObj != 0 && tesObj != 0)
     {
         glAttachShader(exe, tcsObj);
@@ -94,9 +130,9 @@ GLuint linkShader(GLuint vsObj, GLuint fsObj, GLuint tcsObj, GLuint tesObj)
 
     glLinkProgram(exe);
 
-    // check result
+    // Check linking result
+    GLint linkOk;
     glGetProgramiv(exe, GL_LINK_STATUS, &linkOk);
-
     if (linkOk == GL_FALSE)
     {
         std::cout << "Failed to link shader program." << std::endl;
@@ -109,8 +145,14 @@ GLuint linkShader(GLuint vsObj, GLuint fsObj, GLuint tcsObj, GLuint tesObj)
     return exe;
 }
 
+// ================================================
+// Print error log
+// Parameters:
+//   object: shader object
+// ================================================
 void printLog(GLuint &object)
 {
+    // Get compile/build/link log length
     GLint log_length = 0;
     if (glIsShader(object))
     {
@@ -126,22 +168,30 @@ void printLog(GLuint &object)
         return;
     }
 
+    // Get compile/build/link log
+    // Then output log
     char *log = (char *)malloc(log_length);
-
     if (glIsShader(object))
         glGetShaderInfoLog(object, log_length, NULL, log);
     else if (glIsProgram(object))
         glGetProgramInfoLog(object, log_length, NULL, log);
-
     cerr << log << endl;
+
+    // Release resource
     free(log);
 }
 
-GLint myGetUniformLocation(GLuint &prog, string name)
+// ============================================================================
+// Get uniform variable location
+//   1. prog: shader program object
+//   2. name: uniform variable name (string)
+//   3. isWarningOn: output warning message when uniform is not found or not
+// ============================================================================
+GLint myGetUniformLocation(GLuint &prog, string name, bool isWarningOn)
 {
-    GLint location;
-    location = glGetUniformLocation(prog, name.c_str());
-    if (location == -1)
+    // If there is no such uniform, glGetUniformLocation returns -1
+    GLint location = glGetUniformLocation(prog, name.c_str());
+    if (location == -1 && isWarningOn)
     {
         cerr << "Could not bind uniform : " << name << ". "
              << "Did you set the right name? "
@@ -149,6 +199,64 @@ GLint myGetUniformLocation(GLuint &prog, string name)
     }
 
     return location;
+}
+
+// ---------------------------------------------------------
+// Draw points
+// Parameters:
+//   pts: point list
+// ---------------------------------------------------------
+void drawPoints(vector<Point> &pts)
+{
+    int nOfPs = pts.size();
+    GLfloat *aPos = new GLfloat[nOfPs * 3];
+    GLfloat *aColor = new GLfloat[nOfPs * 3];
+
+    // Implant data
+    for (size_t i = 0; i < nOfPs; i++)
+    {
+        // Position
+        Point &p = pts[i];
+        aPos[i * 3 + 0] = p.pos.x;
+        aPos[i * 3 + 1] = p.pos.y;
+        aPos[i * 3 + 2] = p.pos.z;
+
+        // Color
+        aColor[i * 3 + 0] = p.color.r;
+        aColor[i * 3 + 1] = p.color.g;
+        aColor[i * 3 + 2] = p.color.b;
+    }
+
+    // Bind vao
+    GLuint vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    // Bind position vbo
+    GLuint vboPos;
+    glGenBuffers(1, &vboPos);
+    glBindBuffer(GL_ARRAY_BUFFER, vboPos);
+    glBufferData(GL_ARRAY_BUFFER, nOfPs * 3 * sizeof(GLfloat), aPos, GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    // Bind color vbo
+    GLuint vboColor;
+    glGenBuffers(1, &vboColor);
+    glBindBuffer(GL_ARRAY_BUFFER, vboColor);
+    glBufferData(GL_ARRAY_BUFFER, nOfPs * 3 * sizeof(GLfloat), aColor, GL_STREAM_DRAW);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(1);
+
+    // Draw points
+    glDrawArrays(GL_POINTS, 0, nOfPs);
+
+    // Release
+    delete[] aPos;
+    delete[] aColor;
+    glDeleteBuffers(1, &vboPos);
+    glDeleteBuffers(1, &vboColor);
+    glDeleteVertexArrays(1, &vao);
 }
 
 // ================================================
@@ -697,62 +805,4 @@ void Mesh::draw(mat4 M, mat4 V, mat4 P, vec3 eye, vec3 lightColor, vec3 lightPos
     {
         glDrawArrays(GL_PATCHES, 0, faces.size() * 3);
     }
-}
-
-// ---------------------------------------------------------
-// Draw points
-// Parameters:
-//   pts: point list
-// ---------------------------------------------------------
-void drawPoints(vector<Point> &pts)
-{
-    int nOfPs = pts.size();
-    GLfloat *aPos = new GLfloat[nOfPs * 3];
-    GLfloat *aColor = new GLfloat[nOfPs * 3];
-
-    // Implant data
-    for (size_t i = 0; i < nOfPs; i++)
-    {
-        // Position
-        Point &p = pts[i];
-        aPos[i * 3 + 0] = p.pos.x;
-        aPos[i * 3 + 1] = p.pos.y;
-        aPos[i * 3 + 2] = p.pos.z;
-
-        // Color
-        aColor[i * 3 + 0] = p.color.r;
-        aColor[i * 3 + 1] = p.color.g;
-        aColor[i * 3 + 2] = p.color.b;
-    }
-
-    // Bind vao
-    GLuint vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-
-    // Bind position vbo
-    GLuint vboPos;
-    glGenBuffers(1, &vboPos);
-    glBindBuffer(GL_ARRAY_BUFFER, vboPos);
-    glBufferData(GL_ARRAY_BUFFER, nOfPs * 3 * sizeof(GLfloat), aPos, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-
-    // Bind color vbo
-    GLuint vboColor;
-    glGenBuffers(1, &vboColor);
-    glBindBuffer(GL_ARRAY_BUFFER, vboColor);
-    glBufferData(GL_ARRAY_BUFFER, nOfPs * 3 * sizeof(GLfloat), aColor, GL_STREAM_DRAW);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(1);
-
-    // Draw points
-    glDrawArrays(GL_POINTS, 0, nOfPs);
-
-    // Release
-    delete[] aPos;
-    delete[] aColor;
-    glDeleteBuffers(1, &vboPos);
-    glDeleteBuffers(1, &vboColor);
-    glDeleteVertexArrays(1, &vao);
 }

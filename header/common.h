@@ -104,7 +104,7 @@ class Mesh
 // =======================================
 string readFile(const string);
 void printLog(GLuint &);
-GLint myGetUniformLocation(GLuint &, string);
+GLint myGetUniformLocation(GLuint &, string, bool = false);
 GLuint buildShader(string, string, string, string);
 GLuint compileShader(string, GLenum);
 GLuint linkShader(GLuint, GLuint, GLuint, GLuint);
